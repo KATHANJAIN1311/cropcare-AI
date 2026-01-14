@@ -3,6 +3,11 @@ import { Toaster as Sonner } from "./components/ui/sonner";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AlertProvider } from "./components/alerts/AlertProvider";
+import { AuthProvider } from "./contexts/AuthContext";
+import AlertSystem from "./components/alerts/AlertSystem";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import { useAlerts } from "./components/alerts/AlertProvider";
 import Index from "./pages/Index";
 import ImageCapture from "./pages/ImageCapture";
 import Analyzing from "./pages/Analyzing";
@@ -13,14 +18,15 @@ import Dashboard from "./pages/Dashboard";
 import DiseaseLibrary from "./pages/DiseaseLibrary";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import AlertDemo from "./pages/AlertDemo";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
+const AppContent = () => {
+  const { alerts, removeAlert } = useAlerts();
+  
+  return (
+    <ProtectedRoute>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
@@ -32,9 +38,32 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/library" element={<DiseaseLibrary />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/alert-demo" element={<AlertDemo />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
+      <AlertSystem 
+        alerts={alerts} 
+        onDismiss={removeAlert}
+        onAction={(alert, actionType) => {
+          console.log('Alert action:', actionType, alert);
+          // Handle alert actions here
+        }}
+      />
+    </ProtectedRoute>
+  );
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <AuthProvider>
+        <AlertProvider>
+          <Toaster />
+          <Sonner />
+          <AppContent />
+        </AlertProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

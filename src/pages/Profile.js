@@ -13,23 +13,28 @@ import {
   Moon,
   Shield,
   LogOut,
-  ExternalLink
+  ExternalLink,
+  Edit3
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Switch } from "../components/ui/switch";
 import MobileLayout from "../components/layout/MobileLayout";
+import { useAuth } from "../contexts/AuthContext";
+import { useAlerts } from "../components/alerts/AlertProvider";
+import UserProfile from "../components/auth/UserProfile";
 
 const Profile = () => {
   const [offlineMode, setOfflineMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [showUserProfile, setShowUserProfile] = useState(false);
+  
+  const { user, logout } = useAuth();
+  const { showSuccess } = useAlerts();
 
-  const user = {
-    name: "Rajesh Kumar",
-    location: "Maharashtra, India",
-    crops: ["Tomato", "Potato", "Onion"],
-    scansThisMonth: 24,
-    memberSince: "Jan 2024",
+  const handleLogout = () => {
+    logout();
+    showSuccess('Logged out successfully!');
   };
 
   const languages = ["English", "हिंदी", "मराठी", "తెలుగు", "தமிழ்"];
@@ -90,36 +95,46 @@ const Profile = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="glass-card rounded-2xl p-5 shadow-card mb-6"
+          className="glass-card rounded-2xl p-5 shadow-card mb-6 cursor-pointer"
+          onClick={() => setShowUserProfile(true)}
         >
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center">
-              <User className="w-8 h-8 text-primary-foreground" />
+            <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center text-white text-xl font-bold">
+              {user?.name?.charAt(0)?.toUpperCase() || 'U'}
             </div>
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">{user.name}</h2>
-              <p className="text-sm text-muted-foreground">{user.location}</p>
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold text-foreground">{user?.name || 'User'}</h2>
+              <p className="text-sm text-muted-foreground">{user?.location || 'Location not set'}</p>
             </div>
+            <Edit3 className="w-5 h-5 text-muted-foreground" />
           </div>
 
           <div className="flex items-center gap-2 mb-4 flex-wrap">
-            {user.crops.map((crop) => (
-              <span
-                key={crop}
-                className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium"
-              >
-                {crop}
+            {user?.cropTypes ? (
+              user.cropTypes.split(',').map((crop, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium"
+                >
+                  {crop.trim()}
+                </span>
+              ))
+            ) : (
+              <span className="px-3 py-1 bg-muted/30 text-muted-foreground rounded-full text-xs">
+                No crops added
               </span>
-            ))}
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
             <div className="text-center">
-              <p className="text-2xl font-bold text-foreground">{user.scansThisMonth}</p>
+              <p className="text-2xl font-bold text-foreground">0</p>
               <p className="text-xs text-muted-foreground">Scans this month</p>
             </div>
             <div className="text-center">
-              <p className="text-lg font-semibold text-foreground">{user.memberSince}</p>
+              <p className="text-lg font-semibold text-foreground">
+                {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A'}
+              </p>
               <p className="text-xs text-muted-foreground">Member since</p>
             </div>
           </div>
@@ -244,7 +259,11 @@ const Profile = () => {
           transition={{ delay: 0.5 }}
           className="pb-6"
         >
-          <Button variant="outline" className="w-full border-destructive/30 text-destructive hover:bg-destructive/10">
+          <Button 
+            variant="outline" 
+            className="w-full border-destructive/30 text-destructive hover:bg-destructive/10"
+            onClick={handleLogout}
+          >
             <LogOut className="w-5 h-5 mr-2" />
             Sign Out
           </Button>
@@ -255,6 +274,11 @@ const Profile = () => {
           CropCare AI v1.0.0
         </p>
       </div>
+      
+      <UserProfile 
+        isOpen={showUserProfile} 
+        onClose={() => setShowUserProfile(false)} 
+      />
     </MobileLayout>
   );
 };

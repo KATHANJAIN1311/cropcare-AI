@@ -18,6 +18,9 @@ import MobileLayout from "../components/layout/MobileLayout";
 import CameraView from "../components/camera/CameraView";
 import CameraControls from "../components/camera/CameraControls";
 import { useCamera } from "../hooks/useCamera";
+import AlertBell from "../components/alerts/AlertBell";
+import AlertCenter from "../components/alerts/AlertCenter";
+import { useAlerts } from "../components/alerts/AlertProvider";
 
 const languages = [
   { code: "en", name: "English", flag: "🇺🇸" },
@@ -32,11 +35,13 @@ const ImageCapture = () => {
   const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [showLanguages, setShowLanguages] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showAlertCenter, setShowAlertCenter] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [flashMode, setFlashMode] = useState(false);
   const [gridLines, setGridLines] = useState(true);
   const fileInputRef = useRef(null);
+  const { showSuccess, showError, showInfo } = useAlerts();
 
   const {
     videoRef,
@@ -81,6 +86,7 @@ const ImageCapture = () => {
     if (!isStreaming) return;
     
     setIsProcessing(true);
+    showInfo('Capturing image...');
     
     // Add haptic feedback
     if (navigator.vibrate) {
@@ -100,6 +106,9 @@ const ImageCapture = () => {
       const image = captureImage();
       if (image) {
         setCapturedImage(image);
+        showSuccess('Image captured successfully!');
+      } else {
+        showError('Failed to capture image. Please try again.');
       }
       setIsProcessing(false);
     }, 300);
@@ -130,20 +139,23 @@ const ImageCapture = () => {
     if (file) {
       // Validate file type and size
       if (!file.type.startsWith('image/')) {
-        alert('Please select a valid image file.');
+        showError('Please select a valid image file.');
         return;
       }
       
       if (file.size > 10 * 1024 * 1024) { // 10MB limit
-        alert('File size too large. Please select an image under 10MB.');
+        showError('File size too large. Please select an image under 10MB.');
         return;
       }
+      
+      showInfo('Processing uploaded image...');
       
       const reader = new FileReader();
       reader.onload = (event) => {
         const result = event.target?.result;
         setCapturedImage(result);
         stopCamera();
+        showSuccess('Image uploaded successfully!');
       };
       reader.readAsDataURL(file);
     }
@@ -183,6 +195,8 @@ const ImageCapture = () => {
           </h1>
           
           <div className="flex items-center gap-2">
+            <AlertBell onClick={() => setShowAlertCenter(true)} />
+            
             {/* Language Selector */}
             <div className="relative">
               <IconButton
@@ -381,6 +395,11 @@ const ImageCapture = () => {
           100% { opacity: 0; }
         }
       `}</style>
+      
+      <AlertCenter 
+        isOpen={showAlertCenter} 
+        onClose={() => setShowAlertCenter(false)} 
+      />
     </MobileLayout>
   );
 };

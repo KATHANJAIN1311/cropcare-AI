@@ -16,31 +16,42 @@ import {
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import MobileLayout from "../components/layout/MobileLayout";
+import AlertBell from "../components/alerts/AlertBell";
+import AlertCenter from "../components/alerts/AlertCenter";
+import { useAlerts } from "../components/alerts/AlertProvider";
+import { useAuth } from "../contexts/AuthContext";
 
 const Home = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [showAlertCenter, setShowAlertCenter] = useState(false);
+  const { showSuccess, showInfo } = useAlerts();
+  const { user } = useAuth();
 
   const features = [
     {
       icon: Camera,
       title: "AI-Powered Scanning",
       description: "Advanced computer vision technology for instant disease detection",
+      path: "/capture"
     },
     {
       icon: Shield,
       title: "Treatment Plans",
       description: "Personalized organic and chemical treatment recommendations",
+      path: "/treatment"
     },
     {
       icon: TrendingUp,
       title: "Health Tracking",
       description: "Monitor crop conditions and track recovery progress",
+      path: "/dashboard"
     },
     {
       icon: Sparkles,
-      title: "Smart Assistant",
-      description: "24/7 AI farming expert with voice interaction",
+      title: "Alert System Demo",
+      description: "Experience our smart notification and alert system",
+      path: "/alert-demo"
     }
   ];
 
@@ -73,9 +84,12 @@ const Home = () => {
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">CropCare AI</h1>
-              <p className="text-sm text-gray-600">Your farming companion</p>
+              <p className="text-sm text-gray-600">
+                Welcome back, {user?.name?.split(' ')[0] || 'Farmer'}!
+              </p>
             </div>
           </div>
+          <AlertBell onClick={() => setShowAlertCenter(true)} />
         </motion.div>
 
         {/* Main Green Box - Matching Existing Design */}
@@ -130,14 +144,20 @@ const Home = () => {
           className="grid grid-cols-2 gap-3 mb-6"
         >
           <button
-            onClick={handleScanClick}
+            onClick={() => {
+              handleScanClick();
+              showInfo('Camera initialized successfully!');
+            }}
             className="flex flex-col items-center justify-center h-auto py-6 gap-3 bg-green-600 hover:bg-green-700 text-white rounded-2xl transition-all duration-200 shadow-lg"
           >
             <Camera className="w-8 h-8" />
             <span className="font-medium">Scan Crop</span>
           </button>
           <button
-            onClick={() => navigate("/voice")}
+            onClick={() => {
+              navigate("/voice");
+              showSuccess('Voice assistant activated!');
+            }}
             className="flex flex-col items-center justify-center h-auto py-6 gap-3 border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white rounded-2xl transition-all duration-200"
           >
             <Mic className="w-8 h-8" />
@@ -165,7 +185,7 @@ const Home = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.4 + index * 0.1 }}
                   className="bg-white p-4 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer"
-                  onClick={() => navigate("/capture")}
+                  onClick={() => navigate(feature.path)}
                 >
                   <div className="w-10 h-10 bg-green-100 text-green-600 rounded-xl flex items-center justify-center mb-3">
                     <IconComponent className="w-5 h-5" />
@@ -204,6 +224,11 @@ const Home = () => {
           </div>
         </motion.div>
       </div>
+      
+      <AlertCenter 
+        isOpen={showAlertCenter} 
+        onClose={() => setShowAlertCenter(false)} 
+      />
     </MobileLayout>
   );
 };

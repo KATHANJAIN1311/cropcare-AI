@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -14,9 +15,14 @@ import {
 import { Button } from "../components/ui/button";
 import MobileLayout from "../components/layout/MobileLayout";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, BarChart, Bar, Tooltip } from "recharts";
+import AlertBell from "../components/alerts/AlertBell";
+import AlertCenter from "../components/alerts/AlertCenter";
+import { useAlerts } from "../components/alerts/AlertProvider";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [showAlertCenter, setShowAlertCenter] = useState(false);
+  const { showTreatmentDue, showSuccess } = useAlerts();
 
   const healthTrendData = [
     { day: "Mon", health: 85 },
@@ -80,10 +86,7 @@ const Dashboard = () => {
             <h1 className="text-2xl font-display font-bold text-foreground">Dashboard</h1>
             <p className="text-sm text-muted-foreground">Track your crop health</p>
           </div>
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
-          </Button>
+          <AlertBell onClick={() => setShowAlertCenter(true)} />
         </motion.div>
 
         {/* Stats Cards */}
@@ -269,7 +272,8 @@ const Dashboard = () => {
             {reminders.map((reminder) => (
               <div
                 key={reminder.id}
-                className="flex items-center gap-4 p-4 bg-primary/5 border border-primary/20 rounded-2xl"
+                className="flex items-center gap-4 p-4 bg-primary/5 border border-primary/20 rounded-2xl cursor-pointer"
+                onClick={() => showTreatmentDue('Neem Oil Spray', 'Tomato Plants', '2 hours')}
               >
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                   <Bell className="w-5 h-5 text-primary" />
@@ -283,6 +287,11 @@ const Dashboard = () => {
           </div>
         </motion.div>
       </div>
+      
+      <AlertCenter 
+        isOpen={showAlertCenter} 
+        onClose={() => setShowAlertCenter(false)} 
+      />
     </MobileLayout>
   );
 };

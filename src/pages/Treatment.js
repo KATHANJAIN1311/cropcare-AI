@@ -12,14 +12,27 @@ import {
   Clock,
   Shield,
   CheckCircle,
-  Sparkles
+  Sparkles,
+  Bell
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import MobileLayout from "../components/layout/MobileLayout";
+import { useAlerts } from "../components/alerts/AlertProvider";
+import AlertBell from "../components/alerts/AlertBell";
+import AlertCenter from "../components/alerts/AlertCenter";
+import { ALERT_TYPES, PRIORITY_LEVELS } from "../components/alerts/AlertSystem";
 
 const Treatment = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("organic");
+  const [showAlertCenter, setShowAlertCenter] = useState(false);
+  const { 
+    showTreatmentDue, 
+    showWeatherWarning, 
+    showSuccess, 
+    showError,
+    showInfo 
+  } = useAlerts();
 
   const organicTreatments = [
     {
@@ -94,7 +107,7 @@ const Treatment = () => {
           
           <h1 className="text-lg font-display font-semibold">Treatment Plan</h1>
           
-          <div className="w-10" />
+          <AlertBell onClick={() => setShowAlertCenter(true)} />
         </div>
 
         <div className="px-4 py-4">
@@ -252,15 +265,45 @@ const Treatment = () => {
 
           {/* Action Buttons */}
           <div className="space-y-3 pb-safe">
-            <Button className="w-full" size="lg">
+            <Button 
+              className="w-full" 
+              size="lg"
+              onClick={() => {
+                showTreatmentDue('Neem Oil Spray', 'Tomato', '2 hours');
+                showSuccess('Treatment schedule started successfully!');
+              }}
+            >
               Start Treatment Schedule
             </Button>
-            <Button variant="outline" className="w-full" size="lg">
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              size="lg"
+              onClick={() => {
+                showInfo('Reminders have been set for your treatment schedule');
+              }}
+            >
               Set Reminders
+            </Button>
+            <Button 
+              variant="warning" 
+              className="w-full" 
+              size="lg"
+              onClick={() => {
+                showWeatherWarning('Heavy Rain', 'Rain expected in 2 hours. Consider postponing spray application.');
+              }}
+            >
+              Demo Weather Alert
             </Button>
           </div>
         </div>
       </div>
+      
+      {/* Alert Center Modal */}
+      <AlertCenter 
+        isOpen={showAlertCenter} 
+        onClose={() => setShowAlertCenter(false)} 
+      />
     </MobileLayout>
   );
 };
